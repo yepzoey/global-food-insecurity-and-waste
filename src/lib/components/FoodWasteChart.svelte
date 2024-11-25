@@ -366,6 +366,7 @@
 
   .chart-container {
     overflow-x: hidden;
+    overflow-y: hidden;
     width: 100%;
     max-width: 1000px;
     margin: 0 auto;
