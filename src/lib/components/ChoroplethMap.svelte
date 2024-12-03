@@ -66,9 +66,13 @@
     $: descriptionText = descriptionMap[currentYearIndex.toString()] || "Description not available for this year range.";
 
     onMount(async () => {
-        geoData = await d3.json('/custom.geo_med.json'); 
-        csvData = await d3.csv(`${base}/FAOSTAT_data_en_11-15-2024_cleaned.csv`);
-        processData();
+        try {
+            geoData = await d3.json(`${base}/custom.geo_med.json`); 
+            csvData = await d3.csv(`${base}/FAOSTAT_data_en_11-15-2024_cleaned.csv`);
+            processData();
+        } catch (error) {
+            console.error("Error loading data:", error);
+        }
     });
 
     onDestroy(() => {

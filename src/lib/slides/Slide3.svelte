@@ -17,7 +17,7 @@
         <div style="border-top: 1px solid #ddd; width: 50%; margin: 0 auto; margin-bottom: 40px;"></div>
       
         <div style="margin: 0 auto; max-width: 600px;">
-          <img src="progress-chart-placeholder.png" alt="Simple line graph" 
+          <img alt="Simple line graph" 
             style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />
           <p style="font-size: 0.9em; color: #888; margin-top: 10px;">
             <em>Visualization of food security changes by region over the last decade.</em>
