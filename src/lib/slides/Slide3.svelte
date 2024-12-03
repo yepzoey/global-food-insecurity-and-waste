@@ -1,47 +1,79 @@
 <script>
-    import { onMount } from "svelte";
-    import FoodWasteChart from "$lib/components/FoodWasteChart.svelte";
-    import { base } from '$app/paths';
-  
-    let data = [];
-  
-    onMount(async () => {
-      try {
-        const response = await fetch(`${base}/food_waste.csv`);
-        const text = await response.text();
-  
-        const rows = text.split("\n").map(row => row.split(","));
-        const headers = rows.shift();
-  
-        data = rows.map(row => {
-          const obj = {};
-          headers.forEach((header, index) => {
-            obj[header.trim()] = row[index]?.trim();
-          });
-  
-          return {
-            country: obj["Country"],
-            household: +obj["Household estimate (kg/capita/year)"] || 0, // kg/capita/year
-            retail: +obj["Retail estimate (kg/capita/year)"] || 0, // kg/capita/year
-            food_service: +obj["Food service estimate (kg/capita/year)"] || 0, // kg/capita/year
-            confidence: obj["Confidence in estimate"]
-              ? obj["Confidence in estimate"].toLowerCase() // e.g., "very low confidence"
-              : "unknown",
-            total: +obj["combined figures (kg/capita/year)"],
-            region: obj["Region"] || "Unknown" // Region column
-          };
-        });
-      } catch (err) {
-        console.error("Error loading or processing the CSV data:", err);
-      }
-    });
-  </script>
-  
-  {#if data.length > 0}
-    <FoodWasteChart {data} />
-  {/if}
-  
-  {#if data.length === 0}
-    <p>Loading data...</p>
-  {/if}
-  
+  export let content;
+</script>
+
+<div class="slide-content">
+    <div style="text-align: center;">
+        <h2 style="font-size: 2em; font-weight: bold; margin-bottom: 20px; line-height: 1.5; color: #333;">
+          No Progress in Food Security Over the Last Decade
+        </h2>
+      
+        <p style="font-size: 1.25em; line-height: 1.8; color: #555; margin-bottom: 40px;">
+          Across the last decade, food security has shown little to no improvement worldwide. 
+          The only exceptions are North America and Europe, where progress has been minimal, with less than 1% improvement. 
+          This raises concerns, especially given the significant development in other areas globally over the past decade.
+        </p>
+      
+        <div style="border-top: 1px solid #ddd; width: 50%; margin: 0 auto; margin-bottom: 40px;"></div>
+      
+        <div style="margin: 0 auto; max-width: 600px;">
+          <img src="progress-chart-placeholder.png" alt="Simple line graph" 
+            style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />
+          <p style="font-size: 0.9em; color: #888; margin-top: 10px;">
+            <em>Visualization of food security changes by region over the last decade.</em>
+          </p>
+        </div>
+      </div>
+</div>
+
+<style>
+  .slide-content {
+      text-align: center;
+      padding: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+      animation: fadeIn 1s ease-in-out;
+  }
+
+  .slide-content div {
+        animation: fadeIn 1s ease-in-out;
+    }
+
+  h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+  }
+
+  p {
+      font-size: 1.2em;
+      line-height: 1.6;
+      margin-bottom: 15px;
+  }
+
+  ul {
+      text-align: left;
+      margin: 20px auto;
+      max-width: 600px;
+      padding: 0;
+  }
+
+  ul li {
+      font-size: 1.2em;
+      line-height: 1.4;
+      margin: 10px 0;
+      list-style-type: disc;
+      list-style-position: inside;
+  }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+</style>

@@ -9,12 +9,17 @@
   let xAxisSvgElement;
   let legendSvgElement;
   let scrollableContainer;
+  let tooltip;
+  let currentCountry = null;
+
+  let processedData = [];
+  let stackedData = [];
 
   let currentSort = "total_desc";
   let currentTopN = 20;
 
   const barHeight = 25;
-  const maxChartHeight = 250;
+  const maxChartHeight = 310;
   const margin = { top: 0, right: 30, bottom: 30, left: 150 };
 
   onMount(() => {
@@ -34,12 +39,6 @@
       .select(xAxisSvgElement)
       .attr("width", width)
       .attr("height", margin.bottom);
-
-    const tooltip = d3
-      .select(chart)
-      .append("div")
-      .attr("class", "tooltip")
-      .style("visibility", "hidden");
 
     let xScale = d3.scaleLinear();
     let yScale = d3.scaleBand().padding(0.1);
@@ -67,7 +66,7 @@
     updateChart();
 
     function updateChart() {
-      let processedData = [...data];
+      processedData = [...data];
 
       switch (currentSort) {
         case "total_desc":
@@ -111,7 +110,7 @@
         .domain(processedData.map((d) => d.country))
         .range([margin.top, barsHeight]);
 
-      const stackedData = stack(processedData);
+      stackedData = stack(processedData);
 
       const xGridlines = d3
         .axisBottom(xScale)
@@ -170,10 +169,7 @@
         .attr("height", yScale.bandwidth())
         .attr("x", xScale(0))
         .attr("width", 0)
-        .style("opacity", 0)
-        .on("mouseover", handleMouseOver)
-        .on("mousemove", handleMouseMove)
-        .on("mouseout", handleMouseOut);
+        .style("opacity", 0);
 
       rectsEnter
         .merge(rects)
@@ -186,34 +182,121 @@
         .attr("width", (d) => xScale(d[1]) - xScale(d[0]))
         .style("opacity", 1);
 
+      barsSvg.selectAll(".overlay-rect").remove();
       barsSvg.selectAll(".bar-label").remove();
+
       addLabels(processedData);
+
+      const overlayRects = barsSvg.selectAll(".overlay-rect")
+        .data(processedData, (d) => d.country);
+
+      overlayRects.exit().remove();
+
+      overlayRects.enter()
+        .append("rect")
+        .attr("class", "overlay-rect")
+        .merge(overlayRects)
+        .attr("x", (d) => xScale(0))
+        .attr("y", (d) => yScale(d.country))
+        .attr("width", (d) => xScale(d.total) - xScale(0))
+        .attr("height", yScale.bandwidth())
+        .style("fill", "transparent")
+        .on("mousemove", handleMouseMove)
+        .on("mouseleave", handleMouseLeave);
+
       updateAxes();
       addLegend();
     }
 
-    function handleMouseOver(event, d) {
-      const stackKey = event.target.parentNode.__data__.key;
-      tooltip
-        .style("visibility", "visible")
-        .html(`
-          <strong>${d.data.country}</strong><br>
-          <span style="color:${colorScale(stackKey)};">
-            ${stackKey.replace("_", " ").toUpperCase()}
-          </span><br>
-          ${(d[1] - d[0]).toFixed(2)} kg/capita/year<br>
-          Confidence: ${d.data.confidence}
-        `);
+    function handleMouseMove(event, d) {
+      const country = d.country;
+
+      if (currentCountry !== country) {
+        hideTooltip(() => {
+          currentCountry = country;
+          updateTooltipContent(event, d);
+          showTooltip();
+        });
+      } else {
+        updateTooltipContent(event, d);
+      }
     }
 
-    function handleMouseMove(event) {
-      tooltip
-        .style("top", `${event.pageY - 10}px`)
-        .style("left", `${event.pageX + 10}px`);
+    function handleMouseLeave() {
+      hideTooltip();
+      currentCountry = null;
     }
 
-    function handleMouseOut() {
-      tooltip.style("visibility", "hidden");
+    function updateTooltipContent(event, d) {
+      const mouseX = event.pageX - barsSvgElement.getBoundingClientRect().left;
+
+      const countryIndex = processedData.findIndex((data) => data.country === d.country);
+
+      if (countryIndex === -1) return;
+
+      let stackKey = null;
+      for (let i = 0; i < stackedData.length; i++) {
+        const stack = stackedData[i];
+        const stackName = stack.key;
+        const segment = stack[countryIndex];
+
+        const x0 = xScale(segment[0]);
+        const x1 = xScale(segment[1]);
+
+        if (mouseX >= x0 && mouseX <= x1) {
+          stackKey = stackName;
+          const value = segment[1] - segment[0];
+
+          tooltip.innerHTML = `
+            <strong>${d.country}</strong><br>
+            <span style="color:${colorScale(stackKey)};">
+              ${stackKey.replace("_", " ").toUpperCase()}
+            </span><br>
+            ${value.toFixed(2)} kg/capita/year<br>
+            Confidence: ${d.confidence}
+          `;
+
+          positionTooltip(event);
+          break;
+        }
+      }
+    }
+
+    function positionTooltip(event) {
+      const tooltipWidth = tooltip.offsetWidth;
+      const tooltipHeight = tooltip.offsetHeight;
+
+      let left = event.pageX + 20;
+      let top = event.pageY - 25;
+
+      if (left + tooltipWidth > window.innerWidth) {
+        left = event.pageX - tooltipWidth - 15;
+      }
+
+      if (top + tooltipHeight > window.innerHeight) {
+        top = event.pageY - tooltipHeight - 15;
+      }
+
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${top}px`;
+    }
+
+    function showTooltip() {
+      tooltip.style.visibility = "visible";
+      tooltip.style.opacity = 1;
+      tooltip.style.transform = "translateY(0px)";
+      tooltip.style.transitionDelay = "0s";
+    }
+
+    function hideTooltip(callback) {
+      tooltip.style.opacity = 0;
+      tooltip.style.transform = "translateY(10px)";
+      tooltip.style.transitionDelay = "0s";
+
+      setTimeout(() => {
+        tooltip.style.visibility = "hidden";
+        if (callback) callback();
+      }, 300);
     }
 
     function updateAxes() {
@@ -251,6 +334,7 @@
     }
 
     function addLabels(processedData) {
+      const labelOffset = 5;
       const labels = barsSvg.selectAll(".bar-label").data(processedData, (d) => d.country);
 
       labels
@@ -279,7 +363,7 @@
         .transition()
         .duration(transitionDuration)
         .ease(easing)
-        .attr("x", (d) => xScale(d.total))
+        .attr("x", (d) => xScale(d.total) - labelOffset)
         .attr("y", (d) => yScale(d.country) + yScale.bandwidth() / 2 + 4)
         .style("opacity", 1);
     }
@@ -350,12 +434,18 @@
   .tooltip {
     position: absolute;
     visibility: hidden;
+    opacity: 0;
     background: rgba(0, 0, 0, 0.8);
     color: #fff;
     padding: 10px;
     border-radius: 5px;
     font-size: 12px;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.25);
+    z-index: 1000;
+    transform: translateY(10px);
   }
 
   .legend-svg {
@@ -397,7 +487,7 @@
 
   #controls {
     margin-bottom: 20px;
-    font-family: Arial, sans-serif;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
@@ -412,23 +502,6 @@
   #controls select {
     padding: 5px;
     font-size: 14px;
-  }
-
-  body {
-    font-family: Georgia, "Times New Roman", serif;
-    line-height: 1.6;
-    color: #333;
-    margin: 0;
-    padding: 0;
-    background-color: #f9f9f9;
-  }
-
-  h1,
-  h2,
-  h3 {
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-weight: bold;
-    color: #000;
   }
 
   p {
@@ -452,12 +525,16 @@
   }
 </style>
 
-<div style="margin: 0 auto; max-width: 800px; padding: 0px;">
+<div style="margin: 0 auto; max-width: 900px; padding: 0px;">
   <h1>Understanding Food Waste Across Confidence Levels</h1>
   <p>
     An exploration of how confidence in estimates varies across sectors like
     household, retail, and food services. This visualization uncovers patterns in
     food waste globally and allows you to sort, filter, and explore the data for deeper insights.
+  </p>
+  <p style="margin-top: 10px; font-size: 0.9em; font-style: italic; color: #555;">
+    Hover over a bar to view detailed information about the specific contribution of each sector 
+    and the confidence level for that country.
   </p>
   <div id="controls">
     <!-- Sorting Controls -->
@@ -503,5 +580,10 @@
       <svg class="bars-svg" bind:this="{barsSvgElement}"></svg>
     </div>
     <svg class="x-axis-svg" bind:this="{xAxisSvgElement}"></svg>
+    <div
+      bind:this="{tooltip}"
+      class="tooltip"
+      style="opacity: 0; position: absolute; visibility: hidden; transform: translateY(10px);"
+    ></div>
   </div>
 </div>

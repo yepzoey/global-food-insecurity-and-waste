@@ -4,6 +4,10 @@
     import Slide1 from '$lib/slides/Slide1.svelte';
     import Slide2 from '$lib/slides/Slide2.svelte';
     import Slide3 from '$lib/slides/Slide3.svelte';
+    import Slide4 from '$lib/slides/Slide4.svelte';
+    import Slide5 from '$lib/slides/Slide5.svelte';
+    import Slide6 from '$lib/slides/Slide6.svelte';
+    import Slide7 from '$lib/slides/Slide7.svelte';
     import { slideTransition } from '$lib/transitions/customTransitions.js';
     import { fade } from 'svelte/transition';
 
@@ -11,9 +15,112 @@
     let previousSlide = 1;
 
     const slides = [
-        { id: 1, component: Slide1 },
-        { id: 2, component: Slide2 },
-        { id: 3, component: Slide3 }
+        {
+            id: 1,
+            component: Slide1,
+            content: `
+                <h2>Introduction</h2>
+                <p>
+                    The following datasets provide the foundation for this exploration of food insecurity and food waste:
+                </p>
+                <ul>
+                    <li>
+                        <strong>Food Waste Dataset</strong> 
+                        (<a href="https://www.kaggle.com/datasets/joebeachcapital/food-waste" target="_blank" rel="noopener noreferrer">
+                            Kaggle
+                        </a>):
+                        <br>
+                        Contains data on food waste volumes (<em>kg/capita/year</em>) across households, retail, and food service sectors by country. 
+                        <br>Additional details:
+                        <ul>
+                            <li>Confidence levels for estimates</li>
+                            <li>Regional classifications</li>
+                            <li>Sources of data</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>FAOSTAT Dataset</strong> 
+                        (<a href="https://www.fao.org/faostat/en/#data" target="_blank" rel="noopener noreferrer">
+                            FAOSTAT
+                        </a>):
+                        <br>
+                        Includes country-level food security indicators, such as dietary energy supply adequacy and food consumption metrics. 
+                        <br>Additional details:
+                        <ul>
+                            <li>Socio-economic factors</li>
+                            <li>Time-series data for trend analysis</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p>
+                    These datasets enable a comprehensive exploration of the relationship between food waste generation, recovery efforts, and food security outcomes across different regions.
+                </p>
+            `
+        },
+        {
+            id: 2,
+            component: Slide2,
+            content: `
+                <h2>Food Insecurity Trends</h2>
+                <p>This slide explores the trends of food insecurity globally over the last decade.</p>
+            `
+        },
+        {
+            id: 3,
+            component: Slide3,
+            content: `
+                <h2></h2>
+                <p></p>
+            `
+        },
+        {
+            id: 4,
+            component: Slide4,
+            content: `
+                <h2></h2>
+                <p></p>
+            `
+        },
+        {
+            id: 5,
+            component: Slide5,
+            content: `
+                <h2></h2>
+                <p></p>
+            `
+        },
+        {
+            id: 6,
+            component: Slide6,
+            content: `
+                <h2>Food Waste Recovery</h2>
+                <p>This slide visualizes the potential impact of food waste recovery efforts on food security.</p>
+            `
+        },
+        {
+            id: 7,
+            component: Slide7,
+            content: `
+                <h2>About This Visualization</h2>
+                <p>
+        This visualization is based on food waste estimates from <strong><a href="https://www.kaggle.com/datasets/joebeachcapital/food-waste" target="_blank" rel="noopener noreferrer">Food Waste Dataset</a></strong>, which provides data such as <em>Household estimate (kg/capita/year)</em>, <em>Retail estimate (kg/capita/year)</em>, and <em>Food service estimate (kg/capita/year)</em>. These estimates were scaled to reflect daily waste redistribution totals in kilograms.
+    </p>
+    <p>
+        Key calculations used in this visualization:
+    </p>
+    <ul>
+        <li><strong>Daily Waste:</strong> Converted from annual estimates (kg/capita/year) to kilograms per day.</li>
+        <li><strong>Calories Recovered:</strong> Assumes 4,000 kcal per kilogram of food waste, based on estimated caloric content of recoverable food items.</li>
+        <li><strong>People Fed:</strong> Calculated using a daily requirement of 2,000 kcal per person.</li>
+    </ul>
+    <p>
+        Recovery rates represent the percentage of food waste successfully collected and redistributed from each source. The default starting rate is <strong>10%</strong>, which can be adjusted to explore potential outcomes.
+    </p>
+    <p>
+        These calculations provide a model for understanding food waste redistribution. However, real-world factors such as spoilage, infrastructure limitations, and regional differences in waste generation and recovery efficiency may affect actual outcomes.
+    </p>
+            `
+        }
     ];
 
     function changeSlide(event) {
@@ -48,27 +155,10 @@
     </div>
 
     <article class="content">
-        <h2>Initial Prototype Writeup</h2>
-        <p>
-            So far we have developed three interactive visualizations that focus on different aspects of the story we would like to tell. 
-            We have a horizontal stacked bar chart with interactivity that allows the user to sort countries by the amount of food waste they produce. 
-            We have an interactive line graph that shows the percentage of food insecurity among various areas of the world over the last 8 years. 
-            Different regions can be selected to see the trends of food insecurity for entire continents, sub-regions, or countries. 
-            Finally, we developed a choropleth map that shows the prevalence of food insecurity in different countries for various 3-year ranges. 
-            These graphs will help us show viewers the amount of food wasted in comparison to the amount of food insecurity.
-        </p>
-        <p>
-            I believe the most challenging part of this project is going to be ensuring that we send a clear message without losing our audience through unclear explanations or visualizations. 
-            We have lots of data that we could potentially use but we want to ensure that our message is clearly conveyed by walking the reader through each visualization without overcomplicating it by encoding too much info. 
-            Finding a balance between creating interesting visualizations and sending a clear message will be the biggest challenge as we continue in this project. 
-            Some accompanying text will be necessary but we want to only include what is absolutely necessary to get the message across. 
-            Our goal is to create a number of visualizations and text that can be clicked through to share what we found was interesting from the data and then provide the users with these visualizations that they can interact with after if they’d like.
-        </p>
+        {@html slides.find(slide => slide.id === currentSlide).content}
     </article>
-
 </main>
 
 <style>
     @import url('$lib/global.css');
-
 </style>
