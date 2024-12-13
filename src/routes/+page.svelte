@@ -13,6 +13,7 @@
     import Slide8 from '$lib/slides/Slide8.svelte';
     import Slide9 from '$lib/slides/Slide9.svelte';
     import Slide10 from '$lib/slides/Slide10.svelte';
+    import BackToTop from '$lib/components/BackToTop.svelte';
     import { slideTransition } from '$lib/transitions/customTransitions.js';
     import { fade } from 'svelte/transition';
 
@@ -256,6 +257,8 @@
         {@html slides.find(slide => slide.id === currentSlide).content}
     </article>
 </main>
+
+<BackToTop />
 
 <style>
     @import url('$lib/global.css');
