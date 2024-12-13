@@ -10,14 +10,19 @@
       }, 1500);
     });
   }
+
+  function refreshPage() {
+    window.location.reload();
+  }
 </script>
 
 <header>
-  <h1>Food Insecurity and Waste</h1>
+    <h1>Food Insecurity and Waste</h1>
   <nav>
+    <span on:click={refreshPage}>HOME</span>
     <span on:click={copyToClipboard}>SHARE</span>
     {#if tooltipVisible}
-      <div class="tooltip">Copied!</div>
+      <div class="tooltip">Copied link to clipboard!</div>
     {/if}
   </nav>
 </header>
@@ -30,6 +35,12 @@
     padding: 10px 20px;
     font-family: Arial, sans-serif;
     text-wrap: nowrap;
+  }
+
+  a.header-link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
   }
 
   h1 {
