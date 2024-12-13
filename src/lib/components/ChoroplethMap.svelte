@@ -567,6 +567,7 @@
         width: 100%;
         max-width: 1000px;
         text-align: center;
+        margin-top: 10px;
         margin-bottom: 10px;
         display: flex;
         justify-content: center;
